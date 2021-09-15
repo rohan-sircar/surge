@@ -2,10 +2,7 @@
 
 package surge.kafka
 
-import com.typesafe.config.{ Config, ConfigFactory }
-
-import java.time.Instant
-import java.util.concurrent.CompletableFuture
+import com.typesafe.config.ConfigFactory
 import org.apache.kafka.clients.producer._
 import org.apache.kafka.common.TopicPartition
 import org.apache.kafka.common.header.internals.{ RecordHeader, RecordHeaders }
@@ -14,6 +11,9 @@ import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
+
+import java.time.Instant
+import java.util.concurrent.CompletableFuture
 
 class KafkaProducerSpec extends AnyWordSpec with Matchers {
   private val defaultConfig = ConfigFactory.load()

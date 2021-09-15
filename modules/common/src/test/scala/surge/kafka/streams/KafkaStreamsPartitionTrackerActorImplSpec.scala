@@ -16,7 +16,6 @@ import org.scalatestplus.mockito.MockitoSugar
 import surge.internal.akka.kafka.KafkaConsumerStateTrackingActor
 import surge.kafka.HostPort
 
-import scala.concurrent.duration.DurationInt
 import scala.jdk.CollectionConverters._
 
 class KafkaStreamsPartitionTrackerActorImplSpec

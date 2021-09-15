@@ -50,8 +50,9 @@ class KafkaEventSourceSpec
   private implicit val stringDeserializer: Deserializer[String] = DefaultSerdes.stringSerde.deserializer()
   private implicit val byteArrayDeserializer: Deserializer[Array[Byte]] = DefaultSerdes.byteArraySerde.deserializer()
 
-  private def testEventSource(topic: KafkaTopic, kafkaBrokers: String, groupId: String): KafkaEventSource[String] = {
+  private def testEventSource(topic: KafkaTopic, brokers: String): KafkaEventSource[String] = {
     new KafkaEventSource[String] {
+      override def kafkaBrokers: String = brokers
       override def baseEventName: String = "TestAggregateEvent"
       override def kafkaTopic: KafkaTopic = topic
       override def formatting: SurgeEventReadFormatting[String] = bytes => new String(bytes)
@@ -85,7 +86,7 @@ class KafkaEventSourceSpec
 
         val groupId = "subscription-test"
         def createConsumer: KafkaEventSource[String] =
-          testEventSource(topic, kafkaBrokers = embeddedBroker, groupId = groupId)
+          testEventSource(topic, brokers = embeddedBroker)
 
         val record1 = "record 1"
         val record2 = "record 2"
@@ -119,7 +120,7 @@ class KafkaEventSourceSpec
         val groupId = "auto-start-false-test"
 
         def createConsumer: KafkaEventSource[String] =
-          testEventSource(topic, kafkaBrokers = embeddedBroker, groupId = groupId)
+          testEventSource(topic, brokers = embeddedBroker)
 
         val record1 = "record 1"
         publishToKafka(new ProducerRecord[String, String](topic.name, 0, record1, record1))
@@ -146,7 +147,7 @@ class KafkaEventSourceSpec
         val groupId = "tombstone-record-test"
 
         def createConsumer: KafkaEventSource[String] =
-          testEventSource(topic, kafkaBrokers = embeddedBroker, groupId = groupId)
+          testEventSource(topic, brokers = embeddedBroker)
 
         val record1 = "record 1"
         publishToKafka(new ProducerRecord[String, String](topic.name, 0, record1, record1))
@@ -221,7 +222,7 @@ class KafkaEventSourceSpec
 
         val groupId = "restart-test"
         def createConsumer: KafkaEventSource[String] =
-          testEventSource(topic, kafkaBrokers = embeddedBroker, groupId = groupId)
+          testEventSource(topic, brokers = embeddedBroker)
 
         val record1 = "record 1"
         val record2 = "record 2"
@@ -265,7 +266,7 @@ class KafkaEventSourceSpec
         val groupId = "quick-load-test"
         val embeddedBroker = s"localhost:${actualConfig.kafkaPort}"
         def createConsumer: KafkaEventSource[String] =
-          testEventSource(topic, kafkaBrokers = embeddedBroker, groupId = groupId)
+          testEventSource(topic, brokers = embeddedBroker)
 
         (1 to 1000).foreach { num =>
           publishToKafka(new ProducerRecord[String, String](topic.name, num % 3, s"record $num", s"record $num"))

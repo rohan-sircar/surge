@@ -13,7 +13,6 @@ import surge.internal.utils.Logging
 import surge.kafka.HostPort
 
 import scala.concurrent.ExecutionContext
-import scala.concurrent.duration.DurationInt
 
 class ActorRegistrySpec
     extends TestKit(ActorSystem("ActorRegistrySpec"))

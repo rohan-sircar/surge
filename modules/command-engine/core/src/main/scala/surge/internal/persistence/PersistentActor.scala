@@ -23,7 +23,6 @@ import java.time.Instant
 import java.util.concurrent.Executors
 import scala.concurrent.duration.{ Duration, DurationInt, FiniteDuration }
 import scala.concurrent.{ ExecutionContext, Future }
-import scala.util.{ Failure, Success, Try }
 
 object PersistentActor {
 

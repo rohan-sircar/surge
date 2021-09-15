@@ -3,7 +3,6 @@
 package surge.scaladsl.event
 
 import surge.core.event.AggregateEventModelCoreTrait
-import surge.internal
 import surge.internal.domain.EventHandler
 import surge.internal.persistence
 import surge.scaladsl.common.Context

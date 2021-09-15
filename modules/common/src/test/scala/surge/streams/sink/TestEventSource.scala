@@ -10,7 +10,6 @@ import surge.internal.tracing.NoopTracerFactory
 import surge.streams.replay.{ NoOpEventReplayControl, ReplayControl }
 import surge.streams.{ DataPipeline, EventHandler, EventPlusStreamMeta, EventSource }
 
-import java.util.UUID
 import scala.concurrent.Future
 
 class TestEventSource[Event](implicit system: ActorSystem) extends EventSource[Event] {

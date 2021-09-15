@@ -53,7 +53,7 @@ class PersistentActorSpec
   def randomUUID: String = UUID.randomUUID().toString
 
   private def testActor(
-      aggregateId: String = randomUUID,
+      aggregateId: String,
       producerActor: KafkaProducerActor,
       aggregateKafkaStreamsImpl: AggregateStateStoreKafkaStreams[JsValue],
       publishStateOnly: Boolean = false): ActorRef = {
@@ -63,10 +63,10 @@ class PersistentActorSpec
   }
 
   private def testActorProps(
-      aggregateId: String = randomUUID,
+      aggregateId: String,
       producerActor: KafkaProducerActor,
       aggregateKafkaStreamsImpl: AggregateStateStoreKafkaStreams[JsValue],
-      publishStateOnly: Boolean = false): Props = {
+      publishStateOnly: Boolean): Props = {
     val metrics = PersistentActor.createMetrics(Metrics.globalMetricRegistry, "testAggregate")
     val sharedResources = PersistentEntitySharedResources(producerActor, metrics, aggregateKafkaStreamsImpl)
     PersistentActor.props(

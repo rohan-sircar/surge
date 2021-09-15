@@ -14,7 +14,6 @@ import surge.internal.persistence.{ AggregateRefTrait, PersistentActor }
 import surge.internal.tracing.{ NoopTracerFactory, ProbeWithTraceSupport }
 
 import scala.concurrent.Future
-import scala.concurrent.duration.DurationInt
 
 class AggregateRefTraitSpec
     extends TestKit(ActorSystem("AggregateRefTraitSpec"))

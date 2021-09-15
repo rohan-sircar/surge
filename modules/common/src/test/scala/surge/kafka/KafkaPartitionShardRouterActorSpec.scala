@@ -2,7 +2,7 @@
 
 package surge.kafka
 
-import akka.actor.{ Actor, ActorContext, ActorSystem, DeadLetter, Props }
+import akka.actor.{ ActorContext, ActorSystem, Props }
 import akka.testkit.{ TestKit, TestProbe }
 import com.typesafe.config.ConfigFactory
 import org.apache.kafka.common.TopicPartition
@@ -14,15 +14,14 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpecLike
 import org.scalatestplus.mockito.MockitoSugar
 import surge.akka.cluster.{ EntityPropsProvider, PerShardLogicProvider }
-import surge.internal.akka.ActorWithTracing
 import surge.core.Ack
+import surge.internal.akka.ActorWithTracing
 import surge.internal.akka.cluster.ActorSystemHostAwareness
 import surge.internal.akka.kafka.{ KafkaConsumerPartitionAssignmentTracker, KafkaConsumerStateTrackingActor }
-import surge.kafka.streams.{ HealthCheck, HealthCheckStatus }
 import surge.internal.tracing.{ NoopTracerFactory, TracedMessage }
+import surge.kafka.streams.{ HealthCheck, HealthCheckStatus }
 
 import scala.concurrent.Future
-import scala.concurrent.duration.DurationInt
 
 object KafkaPartitionShardRouterActorSpecModels {
   case class Command(id: String)

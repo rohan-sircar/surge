@@ -3,10 +3,8 @@
 package surge.scaladsl.command
 
 import surge.core.command.AggregateCommandModelCoreTrait
-import surge.internal
 import surge.internal.domain.{ AsyncCommandHandler, CommandHandler }
 import surge.internal.persistence
-import surge.scaladsl.command.Types.CommandResult
 import surge.scaladsl.common.Context
 
 import scala.concurrent.{ ExecutionContext, Future }

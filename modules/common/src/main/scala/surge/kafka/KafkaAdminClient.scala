@@ -5,7 +5,7 @@ package surge.kafka
 import com.typesafe.config.Config
 
 import java.util.Properties
-import org.apache.kafka.clients.admin.{ Admin, ListOffsetsOptions, OffsetSpec }
+import org.apache.kafka.clients.admin.{ Admin, ListConsumerGroupOffsetsOptions, ListOffsetsOptions, OffsetSpec }
 import org.apache.kafka.clients.admin.ListOffsetsResult.ListOffsetsResultInfo
 import org.apache.kafka.clients.consumer.{ ConsumerConfig, OffsetAndMetadata }
 import org.apache.kafka.common.TopicPartition
@@ -32,8 +32,10 @@ object KafkaAdminClient {
 class KafkaAdminClient(props: Properties) {
   private val client = Admin.create(props)
 
-  def consumerGroupOffsets(groupName: String): Map[TopicPartition, OffsetAndMetadata] = {
-    client.listConsumerGroupOffsets(groupName).partitionsToOffsetAndMetadata().get().asScala.toMap
+  def consumerGroupOffsets(
+      groupName: String,
+      options: ListConsumerGroupOffsetsOptions = new ListConsumerGroupOffsetsOptions()): Map[TopicPartition, OffsetAndMetadata] = {
+    client.listConsumerGroupOffsets(groupName, options).partitionsToOffsetAndMetadata().get().asScala.toMap
   }
 
   def endOffsets(partitions: List[TopicPartition], options: ListOffsetsOptions = new ListOffsetsOptions()): Map[TopicPartition, ListOffsetsResultInfo] = {
@@ -44,7 +46,8 @@ class KafkaAdminClient(props: Properties) {
       groupName: String,
       topicPartitions: List[TopicPartition],
       listOffsetsOptions: ListOffsetsOptions = new ListOffsetsOptions()): Map[TopicPartition, LagInfo] = {
-    val cgOffsets = consumerGroupOffsets(groupName)
+    val listConsumerGroupOffsetsOptions = new ListConsumerGroupOffsetsOptions().topicPartitions(topicPartitions.asJava)
+    val cgOffsets = consumerGroupOffsets(groupName, listConsumerGroupOffsetsOptions)
     val tpEndOffsets = endOffsets(topicPartitions, listOffsetsOptions)
 
     tpEndOffsets.map { case (topicPartition, endOffsetMeta) =>
