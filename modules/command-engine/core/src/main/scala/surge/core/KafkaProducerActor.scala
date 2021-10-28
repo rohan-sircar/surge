@@ -25,6 +25,7 @@ import scala.util.{ Failure, Success, Try }
 object KafkaProducerActor {
   private val dispatcherName: String = "kafka-publisher-actor-dispatcher"
 
+  //scalastyle:off parameter.number
   def apply(
       actorSystem: ActorSystem,
       assignedPartition: TopicPartition,
@@ -108,7 +109,6 @@ class KafkaProducerActor(
     implicit val askTimeout: Timeout = Timeout(TimeoutConfig.PublisherActor.publishTimeout)
     (publisherActor ? KafkaProducerActorImpl.Publish(eventsToPublish = events, state = state)).mapTo[KafkaProducerActor.PublishResult]
   }
-
   def terminate(): Unit = {
     publisherActor ! PoisonPill
   }

@@ -23,7 +23,7 @@ import surge.core.{ KafkaProducerActor, TestBoundedContext }
 import surge.exceptions.{ AggregateInitializationException, KafkaPublishTimeoutException }
 import surge.health.HealthSignalBusTrait
 import surge.internal.kafka.HeadersHelper
-import surge.internal.persistence.PersistentActor.{ ACKError, ApplyEvent, Stop }
+import surge.internal.persistence.PersistentActor.{ ACKError, ApplyEvents, Stop }
 import surge.internal.tracing.TracedMessage
 import surge.kafka.streams.AggregateStateStoreKafkaStreams
 import surge.metrics.Metrics
@@ -82,8 +82,8 @@ class PersistentActorSpec
     PersistentActor.ProcessMessage(cmd.aggregateId, cmd)
   }
 
-  private def eventEnvelope(event: BaseTestEvent): PersistentActor.ApplyEvent[BaseTestEvent] = {
-    PersistentActor.ApplyEvent[BaseTestEvent](event.aggregateId, event)
+  private def eventEnvelope(event: BaseTestEvent): PersistentActor.ApplyEvents[BaseTestEvent] = {
+    PersistentActor.ApplyEvents[BaseTestEvent](event.aggregateId, List(event))
   }
 
   private def mockKafkaStreams(state: State): AggregateStateStoreKafkaStreams[JsValue] = {
@@ -238,8 +238,8 @@ class PersistentActorSpec
         val testContext = TestContext.setupDefault(mockProducer = probeBackedMockProducer(producerProbe))
         import testContext._
 
-        val testEnvelope: ApplyEvent[CountIncremented] =
-          ApplyEvent[CountIncremented](testAggregateId, CountIncremented(testAggregateId, 0, 3))
+        val testEnvelope: ApplyEvents[CountIncremented] =
+          ApplyEvents[CountIncremented](testAggregateId, List(CountIncremented(testAggregateId, 0, 3)))
 
         probe.send(actor, testEnvelope)
         probe.expectMsg(PersistentActor.ACKSuccess(Some(baseState)))
@@ -374,7 +374,7 @@ class PersistentActorSpec
         val probe2 = TestProbe()
         val actor2 = testActor(testAggregateId, mockProducer, mockStreams)
         terminationWatcherProbe.watch(actor2)
-        val applyEvent = PersistentActor.ApplyEvent(testAggregateId, CountIncremented(testAggregateId, 1, 1))
+        val applyEvent = PersistentActor.ApplyEvents(testAggregateId, List(CountIncremented(testAggregateId, 1, 1)))
         probe2.send(actor2, applyEvent)
         val cmdError2 = probe2.expectMsgType[ACKError](20.seconds)
         cmdError2.exception shouldBe a[AggregateInitializationException]
@@ -411,7 +411,7 @@ class PersistentActorSpec
       // Fuzzy matching because serializing and deserializing gets a different object and messes up .equals even though the two are identical
       eventError.exception.getMessage shouldEqual "failed"
 
-      val applyEvent = PersistentActor.ApplyEvent(testAggregateId, ExceptionThrowingEvent(testAggregateId, 1, errorMsg = "failed"))
+      val applyEvent = PersistentActor.ApplyEvents(testAggregateId, List(ExceptionThrowingEvent(testAggregateId, 1, errorMsg = "failed")))
       probe.send(actor, applyEvent)
       val applyEventError = probe.expectMsgClass(classOf[PersistentActor.ACKError])
       // Fuzzy matching because serializing and deserializing gets a different object and messes up .equals even though the two are identical
@@ -473,6 +473,8 @@ class PersistentActorSpec
       probe.expectMsg(PersistentActor.ACKSuccess(Some(baseState)))
     }
 
+    /** TODO add tests for applying multiple events in one applyEvents call */
+
     "Handle ApplyEvent requests" in {
       val testContext = TestContext.setupDefault
       import testContext._
@@ -483,8 +485,8 @@ class PersistentActorSpec
       val event2 = CountIncremented(expectedState1.get.aggregateId, 1, expectedState1.get.version + 1)
       val expectedState2: Option[State] = BusinessLogic.handleEvent(expectedState1, event2)
 
-      probe.send(actor, PersistentActor.ApplyEvent(testAggregateId, event1))
-      probe.send(actor, PersistentActor.ApplyEvent(testAggregateId, event2))
+      probe.send(actor, PersistentActor.ApplyEvents(testAggregateId, List(event1)))
+      probe.send(actor, PersistentActor.ApplyEvents(testAggregateId, List(event2)))
 
       probe.expectMsg(PersistentActor.ACKSuccess(expectedState1))
       probe.expectMsg(PersistentActor.ACKSuccess(expectedState2))
@@ -558,8 +560,8 @@ class PersistentActorSpec
       val getState1 = PersistentActor.GetState(aggregateId = "foobarbaz")
       val getState2 = PersistentActor.GetState(aggregateId = randomUUID)
 
-      val command3 = PersistentActor.ApplyEvent(aggregateId = "testAggregateId", event = "unused")
-      val command4 = PersistentActor.ApplyEvent(aggregateId = randomUUID, event = "unused")
+      val command3 = PersistentActor.ApplyEvents(aggregateId = "testAggregateId", events = List("unused"))
+      val command4 = PersistentActor.ApplyEvents(aggregateId = randomUUID, events = List("unused"))
 
       RoutableMessage.extractEntityId(command1) shouldEqual command1.aggregateId
       RoutableMessage.extractEntityId(command2) shouldEqual command2.aggregateId
@@ -599,7 +601,7 @@ class PersistentActorSpec
     "Serialize/Deserialize an ApplyEvent from Akka" in {
       import akka.serialization.SerializationExtension
 
-      def doSerde[A](envelope: ApplyEvent[A]): Unit = {
+      def doSerde[A](envelope: ApplyEvents[A]): Unit = {
         val serialization = SerializationExtension.get(system)
         val serializer = serialization.findSerializerFor(envelope)
         val serialized = serialization.serialize(envelope).get
@@ -608,7 +610,7 @@ class PersistentActorSpec
         deserialized shouldEqual envelope
       }
 
-      doSerde(PersistentActor.ApplyEvent[String](UUID.randomUUID().toString, "test2"))
+      doSerde(PersistentActor.ApplyEvents[String](UUID.randomUUID().toString, List("test2")))
       doSerde(eventEnvelope(CountIncremented(UUID.randomUUID().toString, 1, 1)))
     }
   }
